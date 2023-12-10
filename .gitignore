@@ -1,4 +1,8 @@
 ./bot/songs/*
 __pycachce__
+bot/__pycache__/**
+bot/config.ini
+bot/songs/**
+./main.py
 bot_cp.py
 config.ini
