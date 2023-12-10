@@ -1,0 +1,4 @@
+./bot/songs/*
+__pycachce__
+bot_cp.py
+config.ini
