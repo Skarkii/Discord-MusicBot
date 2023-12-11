@@ -24,8 +24,9 @@ A music bot that just should work.
 
 ## Supported Sources
   * Youtube
-  * Soundclouud
-  * Generally all supported formats from [yt-dlp](https://github.com/yt-dlp/yt-dlp/)
+  * Soundcloud
+  * Spotify
+  * Generally all supported formats from [yt-dlp](https://github.com/yt-dlp/yt-dlp/), though most untested.
 
 ## Example
 To be added
@@ -36,3 +37,8 @@ To be added
   * [Discord.py](https://github.com/Rapptz/discord.py) is required
   * [ffmpeg](https://ffmpeg.org/) is required
   * [PyNaCl](https://pypi.org/project/PyNaCl/) is required
+  * [spotdl](https://github.com/spotDL/spotify-downloader) is required
+
+Copy example_config.ini to config.ini, fill all fields in config.ini
+
+Navigate to bot folder, and run `python3 .`.

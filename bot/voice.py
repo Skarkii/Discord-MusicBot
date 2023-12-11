@@ -83,13 +83,13 @@ class Voice():
             if(self.voice_client is None):
                 await self.join(message.author)
 
-            urls = await is_playlist(message.content.split(' ')[1])
+            urls = await is_playlist(' '.join(message.content.split(' ')[1:]))
             if(len(urls) > 1):
                 pass#await self.send_message(message.channel, "is a playlist")
-            print(urls)
+            #print(urls)
 
             for url in urls:
-                s = Song(url, message.author)
+                s = Song(url['url'], url['name'], message.author)
                 print("Downloading:",message.content.split(' ')[1])
                 self.songs.append(s)
                 r = await s.download()
