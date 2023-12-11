@@ -1,8 +1,10 @@
 import threading
+import yt_dlp
 import discord
 import time
 import asyncio
 from song import Song as Song
+from song import is_playlist
 
 class Voice():
     def __init__(self, bot, gid):
@@ -23,13 +25,16 @@ class Voice():
         if error:
             print(f'An error occurred: {error}')
 
-        self.is_playing = False    
+        self.is_playing = False
         
     async def start_playing(self, song):
         self.is_playing = True
-        #await self.send_message(self.channel, "Playing: " + song.url)
-        source = discord.FFmpegPCMAudio(source=song.full_path)
-        self.voice_client.play(source, after=lambda error: self.on_finished_play(song, error))
+        try:
+            source = discord.FFmpegPCMAudio(source=song.full_path)
+            self.voice_client.play(source, after=lambda error: self.on_finished_play(song, error))
+            await self.send_message(self.channel, "Playing: " + song.name)
+        except:
+            pass
         
     async def long_task(self):
         await asyncio.sleep(5)
@@ -46,7 +51,9 @@ class Voice():
             await self.send_message(channel, st)
         else:
             await self.send_message(channel, "Queue is empty")
-        
+
+    
+            
     async def handle_message(self, message):
         if(message.author.bot == True):
             return
@@ -69,18 +76,24 @@ class Voice():
         if(message.content == "jo"):
             await self.send_message(message.channel, "jo")
 
-        if((message.content.split(' ')[0] == "!p" or message.content.split(' ')[0] == "!play") and len(message.content.split(' ')) == 2):
-
+        if((message.content.split(' ')[0] == "!p" or message.content.split(' ')[0] == "!play")):
+            url = None
             if(self.voice_client is None):
                 await self.join(message.author)
-            
-            s = Song(message.content.split(' ')[1], message.author)
-            print("Downloading:",message.content.split(' ')[1])
-            self.songs.append(s)
-            r = await s.download()
-            if(r == False):
-                print("Failed to download song!")
-                return
+
+            urls = await is_playlist(message.content.split(' ')[1])
+            if(len(urls) > 1):
+                pass#await self.send_message(message.channel, "is a playlist")
+            print(urls)
+
+            for url in urls:
+                s = Song(url, message.author)
+                print("Downloading:",message.content.split(' ')[1])
+                self.songs.append(s)
+                r = await s.download()
+                if(r == False):
+                    print("Failed to download song!")
+                    
             return
 
         if(message.content.split(' ')[0] == "!skip"):

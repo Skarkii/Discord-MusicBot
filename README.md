@@ -1,4 +1,4 @@
-#Discord-Bot
+# Discord-Bot
 
 A music bot that just should work.
 
@@ -7,16 +7,20 @@ A music bot that just should work.
   * Skip songs
   * Pause songs
   * Display queue
+  * Play playlists
   
 ## To be implemented
   * Shuffle
-  * Allow a playlist to be added on prompt rather than single songs
   * Take turns queue
   * Leave on inactivity
   * Move songs in queue
   * Generally more interactive messages to user
   * Bind to channel in server
   * Blacklist
+  * Clear queue
+  
+## Customizable
+  * Prefix for commands
 
 ## Supported Sources
   * Youtube

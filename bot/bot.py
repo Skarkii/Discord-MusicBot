@@ -24,7 +24,7 @@ class Bot(discord.Client):
             await asyncio.sleep(1)
             for vc in self.voice_connections:
                 if(len(vc.songs) > 0 and vc.songs[0].is_ready and not vc.voice_client.is_playing() and not vc.is_paused):
-                    s = vc.songs.pop()
+                    s = vc.songs.pop(0)
                     await vc.start_playing(s)
                     print("Start playing songs!", s.url)
                     del s
