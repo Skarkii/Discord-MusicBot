@@ -15,8 +15,8 @@ A music bot that just should work.
   * Leave on inactivity
   * Move songs in queue
   * Generally more interactive messages to user
-  * Bind to channel in server
-  * Blacklist
+  * Bind to text channel in server
+  * Blacklist people
   * Clear queue
   
 ## Customizable

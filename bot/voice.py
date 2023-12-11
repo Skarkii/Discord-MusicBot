@@ -5,6 +5,7 @@ import time
 import asyncio
 from song import Song as Song
 from song import is_playlist
+from config import config as config
 
 class Voice():
     def __init__(self, bot, gid):
@@ -17,6 +18,7 @@ class Voice():
         self.songs = []
         self.is_playing = False
         self.is_paused = False
+        self.prefix = config['MESSAGES']['PREFIX']
 
         self.channel = None #temp
 
@@ -59,16 +61,16 @@ class Voice():
             return
         self.channel = message.channel
         print(f'{message.author} said {message.content}')
-        if(message.content == "!join"):
+        if(message.content == self.prefix + "join"):
             await self.join(message.author)
 
-        if(message.content == "!move"):
+        if(message.content == self.prefix + "move"):
             await self.join(message.author, force=True)
 
-        if(message.content == "!leave"):
+        if(message.content == self.prefix + "leave"):
             await self.leave()
 
-        if(message.content == "!sleep"):
+        if(message.content == self.prefix + "sleep"):
             await self.send_message(message.channel, "Sleeping for five secounds")
             await self.long_task()
             await self.send_message(message.channel, "Finished sleeping!")
@@ -76,7 +78,7 @@ class Voice():
         if(message.content == "jo"):
             await self.send_message(message.channel, "jo")
 
-        if((message.content.split(' ')[0] == "!p" or message.content.split(' ')[0] == "!play")):
+        if((message.content.split(' ')[0] == self.prefix + "p" or message.content.split(' ')[0] == self.prefix + "play")):
             url = None
             if(self.voice_client is None):
                 await self.join(message.author)
@@ -96,10 +98,10 @@ class Voice():
                     
             return
 
-        if(message.content.split(' ')[0] == "!skip"):
+        if(message.content.split(' ')[0] == self.prefix + "skip"):
             self.voice_client.stop()
 
-        if(message.content == "!pause"):
+        if(message.content == self.prefix + "pause"):
             if(self.is_paused):
                 self.voice_client.resume()
                 self.is_paused = False
@@ -107,13 +109,13 @@ class Voice():
                 self.voice_client.pause()
                 self.is_paused = True
 
-        if(message.content == "!queue" or message.content == "!q"):
+        if(message.content == self.prefix + "queue" or message.content == self.prefix + "q"):
             await self.display_queue(message.channel)
 
-        if(message.content == "!skip"):
+        if(message.content == self.prefix + "skip"):
             self.voice_client.stop()
 
-        if(message.content == "!stop"):
+        if(message.content == self.prefix + "stop"):
             await self.leave()
             
     async def send_message(self, channel, msg):
