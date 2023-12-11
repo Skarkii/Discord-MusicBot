@@ -35,3 +35,4 @@ To be added
   * [yt-dlp](https://github.com/yt-dlp/yt-dlp/) is required
   * [Discord.py](https://github.com/Rapptz/discord.py) is required
   * [ffmpeg](https://ffmpeg.org/) is required
+  * [PyNaCl](https://pypi.org/project/PyNaCl/) is required

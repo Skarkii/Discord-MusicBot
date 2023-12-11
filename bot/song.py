@@ -1,12 +1,10 @@
 import yt_dlp
-import re
 from config import config as config
 import os
 import time
 import asyncio
 import uuid
 import json
-
 
 async def is_playlist(playlist_url):
     ydl_opts = {
