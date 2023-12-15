@@ -9,38 +9,61 @@ from spotdl import *
 
 spotdl = Spotdl(client_id=config['SPOTIFY']['ID'], client_secret=config['SPOTIFY']['SECRET'], no_cache=True)
 
-async def is_playlist(playlist_url):
-    if("spotify" in playlist_url):
-        # Horrible fix, needs to be changed.
-        song_info = spotdl.search([playlist_url])
-        print("Song info : ", song_info[0])
-        if(song_info[0].list_name is None):
-            playlist_url = song_info[0].name + " " + song_info[0].artist
-        else:
-            url = []
-            for i in range(song_info[0].list_length):
-                url.append(await is_playlist(song_info[i].name + " " + song_info[i].artist))
-            return [item for sublist in url for item in sublist]
-        
+async def spotify_to_youtube(url):
     ydl_opts = {
         'quiet': False,
         'ignoreerrors': True,
-        'extract_flat': "in_playlist",
-        'default_search': 'ytsearch',
+        'extract_flat': True,
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"ytsearch{1}:{url}", download=False)
+            return {'url': info['entries'][0]['url'], 'name': info['entries'][0]['title']}
+            
+    except yt_dlp.DownloadError as e:
+        print(f'YT DLP Error: {e}')
+        return []
+    
+
+async def spotify_appender(playlist_url):
+    urls = []
+    song_info = spotdl.search([playlist_url])
+
+    if(song_info[0].list_name is None): # Single song
+        return await spotify_to_youtube(str(song_info[0].name + " " + song_info[0].artist))
+    
+    else:# Playlist
+        for i in range(song_info[0].list_length):
+            newurl = await spotify_to_youtube(song_info[i].name + " "  + song_info[i].artist)
+            urls.append(newurl)
+    return urls
+
+async def general_appender(playlist_url):
+                
+    url = []
+    
+    ydl_opts = {
+        'quiet': False,
+        'ignoreerrors': True,
+        'extract_flat': True,
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(playlist_url, download=False)
+
+            if(info is None): # NO URL, use ytsearch instead
+                info = ydl.extract_info(f"ytsearch:{playlist_url}", download=False)
+
             print(info)
-            url = []
+            
             if 'entries' in info:
                 for entry in info['entries']:
                     url.append({'url': entry['url'], 'name': entry['title']})
             else:
-                url.append({'url': playlist_url, 'name': info['title']})
-                return list(url)
-            
+                #print(info)
+                url.append({'url': info['webpage_url'], 'name': info['title']})
+
             return list(url)
 
     except yt_dlp.DownloadError as e:
@@ -61,7 +84,7 @@ class Song:
         
     def __del__(self):
         try:
-            #os.remove(self.full_path)
+            os.remove(self.full_path)
             pass
         except Exception as e:
             print(f"Error removing file: {e}")
@@ -77,7 +100,10 @@ class Song:
         }
 
         with yt_dlp.YoutubeDL(options) as ydl:
-            info_dict = ydl.extract_info(f'{url}', download=True)
+            info = ydl.extract_info(f'{url}', download=True)
+            if(self.name == "no-title"):
+                #print(info['title'])
+                self.name = info['title']
 
     async def download_video(self, url, path, name):
         try:

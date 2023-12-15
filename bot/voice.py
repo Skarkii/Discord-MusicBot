@@ -4,7 +4,7 @@ import discord
 import time
 import asyncio
 from song import Song as Song
-from song import is_playlist
+from song import general_appender, spotify_appender
 from config import config as config
 
 class Voice():
@@ -18,12 +18,26 @@ class Voice():
         self.songs = []
         self.is_playing = False
         self.is_paused = False
+        self.current = None
         self.prefix = config['MESSAGES']['PREFIX']
 
         self.channel = None #temp
 
+    async def current_song(self):
+        if(self.current is not None):
+            song = self.current
+            embed = discord.Embed(
+                title=':headphones: Song Playing Now',
+                description= f'[{song.name}]({song.url})',
+                color=discord.Color.blue()
+            )
+            embed.add_field(name=f'**Requester:** {song.requested_by}', value='', inline=False)
+            await self.channel.send(embed=embed)
+            #await self.send_message(self.channel, ("Current song: " + self.current.name))
+        
     def on_finished_play(self, song, error):
         print("Finished playing", song)
+        self.current = None
         if error:
             print(f'An error occurred: {error}')
 
@@ -33,29 +47,57 @@ class Voice():
         self.is_playing = True
         try:
             source = discord.FFmpegPCMAudio(source=song.full_path)
+            self.current = song
             self.voice_client.play(source, after=lambda error: self.on_finished_play(song, error))
-            await self.send_message(self.channel, "Playing: " + song.name)
+            embed = discord.Embed(
+                title=':headphones: Song Playing Now',
+                description= f'[{song.name}]({song.url})',
+                color=discord.Color.blue()
+            )
+            embed.add_field(name=f'**Requester:** {song.requested_by}', value='', inline=False)
+            await self.channel.send(embed=embed)
         except:
             pass
         
-    async def long_task(self):
-        await asyncio.sleep(5)
+    async def display_help(self, channel):
+        embed = discord.Embed(
+            title='**Available Commands**',
+            color=discord.Color.blue()
+        )
+
+        embed.add_field(name=f':headphones: `MUSIC`', value='', inline=False)
+        embed.add_field(name=f'**play** - Plays a song', value='', inline=False)
+
+        embed.add_field(name=f':satellite: `OTHER`', value='', inline=False)
+        embed.add_field(name=f'**help** - display this message', value='', inline=False)
+                    
+        await self.channel.send(embed=embed)
+        
 
     async def display_queue(self, channel):
-        st = "Total songs: " + str(len(self.songs)) + "\n"
-        i = 0
-        for song in self.songs:
-            i = i + 1
-            st = st + str(i) + ". " + song.name + "\n"
-            if(i >= 5):
-                break
-        if(i > 0):
-            await self.send_message(channel, st)
-        else:
-            await self.send_message(channel, "Queue is empty")
+        # Create an embed object
+        if(len(self.songs) > 0):
+            embed = discord.Embed(
+                title=':headphones: Songs in Queue',
+                description= f':scroll: Queue length: {str(len(self.songs))} | Page Number: x/y | :hourglass: Duration: `{"duration"}`',
+                color=discord.Color.blue()
+            )
 
-    
-            
+            i = 0
+            for song in self.songs:
+                i = i + 1
+                if(i > 10):
+                    break
+                embed.add_field(name=f'', value=f'`{i}` **-** [{song.name}]({song.url}) - `{song.length}`', inline=False)
+        else:
+            embed = discord.Embed(
+                title=':headphones: Songs in Queue',
+                description= f':scroll: Song queue is empty, use -play to play songs',
+                color=discord.Color.blue()
+            )
+                    
+        await self.channel.send(embed=embed)
+        
     async def handle_message(self, message):
         if(message.author.bot == True):
             return
@@ -66,6 +108,15 @@ class Voice():
 
         if(message.content == self.prefix + "move"):
             await self.join(message.author, force=True)
+
+        if(message.content == self.prefix + "help" or message.content == self.prefix + "commands"):
+            await self.display_help(message.channel)
+
+        if(message.content == "embed"):
+            await self.embed(message.channel, "test")
+
+        if(message.content == self.prefix + "c" or message.content == self.prefix + "current"):
+            await self.current_song()
 
         if(message.content == self.prefix + "leave"):
             await self.leave()
@@ -79,23 +130,23 @@ class Voice():
             await self.send_message(message.channel, "jo")
 
         if((message.content.split(' ')[0] == self.prefix + "p" or message.content.split(' ')[0] == self.prefix + "play")):
-            url = None
+            urls = None
             if(self.voice_client is None):
                 await self.join(message.author)
 
-            urls = await is_playlist(' '.join(message.content.split(' ')[1:]))
-            if(len(urls) > 1):
-                pass#await self.send_message(message.channel, "is a playlist")
-            #print(urls)
+            if("spotify" in ' '.join(message.content.split(' ')[1:])):
+                 urls = await spotify_appender(' '.join(message.content.split(' ')[1:]))
+            else:
+                urls = await general_appender(' '.join(message.content.split(' ')[1:]))
 
+            print(urls)
             for url in urls:
+                print("URL :", url)
                 s = Song(url['url'], url['name'], message.author)
-                print("Downloading:",message.content.split(' ')[1])
                 self.songs.append(s)
-                r = await s.download()
-                if(r == False):
-                    print("Failed to download song!")
-                    
+            #await message.add_reaction(':x:')
+            await message.add_reaction('\u2705')
+            print("ADDED ALL SONGS")
             return
 
         if(message.content.split(' ')[0] == self.prefix + "skip"):
@@ -114,9 +165,25 @@ class Voice():
 
         if(message.content == self.prefix + "skip"):
             self.voice_client.stop()
+            # Create anmbed object with a clickable link
+            embed = discord.Embed(
+                title=':fast_forward: **Song Skipped**',
+                color=discord.Color.blue()  # You can customize the color
+            )
+
+            # Send the embed to the same channel where the command was used
+            await message.channel.send(embed=embed)
 
         if(message.content == self.prefix + "stop"):
             await self.leave()
+            # Create an embed object with a clickable link
+            embed = discord.Embed(
+                title=':stop_button: **Player Stopped**',
+                color=discord.Color.blue()  # You can customize the color
+            )
+
+            # Send the embed to the same channel where the command was used
+            await message.channel.send(embed=embed)
             
     async def send_message(self, channel, msg):
         await channel.send(msg)
