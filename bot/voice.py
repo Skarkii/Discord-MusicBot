@@ -135,15 +135,16 @@ class Voice():
                 await self.join(message.author)
 
             if("spotify" in ' '.join(message.content.split(' ')[1:])):
-                 urls = await spotify_appender(' '.join(message.content.split(' ')[1:]))
+                urls = await spotify_appender(' '.join(message.content.split(' ')[1:]))
             else:
                 urls = await general_appender(' '.join(message.content.split(' ')[1:]))
 
             print(urls)
             for url in urls:
                 print("URL :", url)
-                s = Song(url['url'], url['name'], message.author)
+                s = Song(url['url'], url['name'], url['artist'], message.author)
                 self.songs.append(s)
+
             #await message.add_reaction(':x:')
             await message.add_reaction('\u2705')
             print("ADDED ALL SONGS")

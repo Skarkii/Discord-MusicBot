@@ -1,43 +1,54 @@
-import yt_dlp
 from config import config as config
 import os
 import time
 import asyncio
 import uuid
 import json
-from spotdl import *
 
-spotdl = Spotdl(client_id=config['SPOTIFY']['ID'], client_secret=config['SPOTIFY']['SECRET'], no_cache=True)
+# Youtube downloader
+import yt_dlp
 
-async def spotify_to_youtube(url):
-    ydl_opts = {
-        'quiet': False,
-        'ignoreerrors': True,
-        'extract_flat': True,
-    }
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(f"ytsearch{1}:{url}", download=False)
-            return {'url': info['entries'][0]['url'], 'name': info['entries'][0]['title']}
-            
-    except yt_dlp.DownloadError as e:
-        print(f'YT DLP Error: {e}')
-        return []
-    
+# Spotify API
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
-async def spotify_appender(playlist_url):
+
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=config['SPOTIFY']['ID'], client_secret=config['SPOTIFY']['SECRET']))
+
+async def get_all_playlist_items(sp, playlist_id):
+    all_items = []
+
+    offset = 0
+
+    while True:
+        results = sp.playlist_tracks(playlist_id, offset=offset)
+
+        if not results['items']:
+            break
+
+        all_items.extend(results['items'])
+
+        offset += len(results['items'])
+
     urls = []
-    song_info = spotdl.search([playlist_url])
 
-    if(song_info[0].list_name is None): # Single song
-        return await spotify_to_youtube(str(song_info[0].name + " " + song_info[0].artist))
-    
-    else:# Playlist
-        for i in range(song_info[0].list_length):
-            newurl = await spotify_to_youtube(song_info[i].name + " "  + song_info[i].artist)
-            urls.append(newurl)
+    for song in all_items:
+        print(song.keys())
+        urls.append({'url': song['track']['external_urls']['spotify'], 'name': song['track']['name'], 'artist': song['track']['artists'][0]['name']})
+        
     return urls
 
+
+async def get_single_song(sp, url):
+    #urls = []
+    song = sp.track(url)
+    return [{'url': song['external_urls']['spotify'], 'name': song['name'], 'artist': song['artists'][0]['name']}]
+
+
+async def spotify_appender(url):
+    if("playlist" in url):
+        return await get_all_playlist_items(sp, url)
+    return await get_single_song(sp, url)
 async def general_appender(playlist_url):
                 
     url = []
@@ -59,10 +70,10 @@ async def general_appender(playlist_url):
             
             if 'entries' in info:
                 for entry in info['entries']:
-                    url.append({'url': entry['url'], 'name': entry['title']})
+                    url.append({'url': entry['url'], 'name': entry['title'], 'artist': ""})
             else:
                 #print(info)
-                url.append({'url': info['webpage_url'], 'name': info['title']})
+                url.append({'url': info['webpage_url'], 'name': info['title'], 'artist': ""})
 
             return list(url)
 
@@ -71,12 +82,13 @@ async def general_appender(playlist_url):
         return []
     
 class Song:
-    def __init__(self, url, name="no-title", requested_by="Noone"):
+    def __init__(self, url, name="no-title",artist="", requested_by="Noone"):
         self.file_path = config['DISCORD']['SONGS_FOLDER']
         self.file_name = str(uuid.uuid4())
         self.full_path = self.file_path + self.file_name
                 
         self.name = name
+        self.artist = artist
         self.length = 0
         self.is_ready = False
         self.requested_by = requested_by
@@ -89,33 +101,53 @@ class Song:
         except Exception as e:
             print(f"Error removing file: {e}")
         print("Song deleted")
-    
-    def ytdlp_download(self, url, output_path, file_name):
+
+
+    async def spotify_to_youtube_url(self):
+        ydl_opts = {
+            'quiet': False,
+            'ignoreerrors': True,
+            'extract_flat': True,
+        }
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(f"ytsearch{1}:{self.name} {self.artist}", download=False)
+                
+                return info['entries'][0]['url']
+            
+        except yt_dlp.DownloadError as e:
+            print(f'YT DLP Error: {e}')
+            return []
+
+        
+        
+    def ytdlp_download(self):
         options = {
             'format': 'bestaudio/best',
             'extractaudio': True,
             'audioformat': 'mp3',
-            'outtmpl': f'{output_path}/{file_name}',
+            'outtmpl': f'{self.file_path}/{self.file_name}',
             'noplaylist': True,
         }
 
         with yt_dlp.YoutubeDL(options) as ydl:
-            info = ydl.extract_info(f'{url}', download=True)
-            if(self.name == "no-title"):
-                #print(info['title'])
-                self.name = info['title']
+            info = ydl.extract_info(self.url, download=True)
 
-    async def download_video(self, url, path, name):
+    async def download_video(self):
         try:
             loop = asyncio.get_event_loop()
 
-            await loop.run_in_executor(None, self.ytdlp_download, url, path, name)
+            if("spotify" in self.url):
+                self.url = await self.spotify_to_youtube_url()
+                
+            await loop.run_in_executor(None, self.ytdlp_download)
+            
         except Exception as e:
             print(f'An error occurred: {e}')
             
     async def download(self):
         try:
-            await self.download_video(self.url, self.file_path, self.file_name)
+            await self.download_video()
         except Exception as e:
             print("Youtube download failed", e)
         self.is_ready = True
