@@ -15,6 +15,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=config['SPOTIFY']['ID'], client_secret=config['SPOTIFY']['SECRET']))
 
+# TODO: Add error checking
 async def get_all_playlist_items(sp, playlist_id):
     all_items = []
 
@@ -27,28 +28,32 @@ async def get_all_playlist_items(sp, playlist_id):
             break
 
         all_items.extend(results['items'])
-
+        
         offset += len(results['items'])
 
     urls = []
 
     for song in all_items:
-        print(song.keys())
-        urls.append({'url': song['track']['external_urls']['spotify'], 'name': song['track']['name'], 'artist': song['track']['artists'][0]['name']})
+        print(song['track']['duration_ms'])
+        urls.append({'url': song['track']['external_urls']['spotify'], 'name': song['track']['name'], 'artist': song['track']['artists'][0]['name'], 'duration': song['track']['duration_ms']/1000})
         
     return urls
 
-
+# TODO: Add error checking
 async def get_single_song(sp, url):
-    #urls = []
     song = sp.track(url)
-    return [{'url': song['external_urls']['spotify'], 'name': song['name'], 'artist': song['artists'][0]['name']}]
+    return [{'url': song['external_urls']['spotify'], 'name': song['name'], 'artist': song['artists'][0]['name'], 'duration': song['duration_ms']/1000}]
 
 
 async def spotify_appender(url):
     if("playlist" in url):
         return await get_all_playlist_items(sp, url)
     return await get_single_song(sp, url)
+
+async def soundcloud_set_appender(url):
+    
+    return []
+
 async def general_appender(playlist_url):
                 
     url = []
@@ -70,11 +75,10 @@ async def general_appender(playlist_url):
             
             if 'entries' in info:
                 for entry in info['entries']:
-                    url.append({'url': entry['url'], 'name': entry['title'], 'artist': ""})
+                    url.append({'url': entry['url'], 'name': entry['title'], 'artist': "", 'duration': entry['duration']})
             else:
-                #print(info)
-                url.append({'url': info['webpage_url'], 'name': info['title'], 'artist': ""})
-
+                url.append({'url': info['webpage_url'], 'name': info['title'], 'artist': "", 'duration': info['duration']})
+    
             return list(url)
 
     except yt_dlp.DownloadError as e:
@@ -82,14 +86,13 @@ async def general_appender(playlist_url):
         return []
     
 class Song:
-    def __init__(self, url, name="no-title",artist="", requested_by="Noone"):
+    def __init__(self, url, name="no-title",artist="", requested_by="Noone", duration=0):
         self.file_path = config['DISCORD']['SONGS_FOLDER']
         self.file_name = str(uuid.uuid4())
         self.full_path = self.file_path + self.file_name
-                
+        self.duration = duration
         self.name = name
         self.artist = artist
-        self.length = 0
         self.is_ready = False
         self.requested_by = requested_by
         self.url = url
@@ -97,7 +100,6 @@ class Song:
     def __del__(self):
         try:
             os.remove(self.full_path)
-            pass
         except Exception as e:
             print(f"Error removing file: {e}")
         print("Song deleted")
@@ -126,7 +128,7 @@ class Song:
             'format': 'bestaudio/best',
             'extractaudio': True,
             'audioformat': 'mp3',
-            'outtmpl': f'{self.file_path}/{self.file_name}',
+            'outtmpl': f'{self.file_path}{self.file_name}',
             'noplaylist': True,
         }
 

@@ -23,7 +23,7 @@ class Bot(discord.Client):
         found = False
         while not self.is_closed():
             if not found:
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.5)
             found = False
             for vc in self.voice_connections:
                 for song in vc.songs:
@@ -37,14 +37,13 @@ class Bot(discord.Client):
         await self.wait_until_ready()
 
         while not self.is_closed():
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
             for vc in self.voice_connections:
                 if(len(vc.songs) > 0 and vc.songs[0].is_ready and not vc.voice_client.is_playing() and not vc.is_paused):
                     s = vc.songs.pop(0)
                     await vc.start_playing(s)
                     print("Start playing songs!", s.url)
                     del s
-
         
         
     async def on_ready(self):
@@ -64,9 +63,9 @@ class Bot(discord.Client):
             self.voice_connections.append(v)
             
         await v.handle_message(message)
-    
+
     async def on_voice_state_update(self, member, before, after):
-        if(member.bot):        
+        if(member == self.user):
             if before.channel and not after.channel:
                 for vc in self.voice_connections:
                     if vc.gid == before.channel.guild.id:
