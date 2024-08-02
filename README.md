@@ -12,13 +12,13 @@ A music bot that just should work.
   * Clear queue
   * Shuffle queued songs
   * Move songs in queue
-  
+
 ## To be implemented
   * Take turns queue
   * Leave on inactivity
   * Bind to text channel in server
   * Blacklist users from using the bot
-  
+
 ## Customizable
   * Prefix for commands
 
@@ -38,6 +38,11 @@ To be added
   * [ffmpeg](https://ffmpeg.org/) is required
   * [PyNaCl](https://pypi.org/project/PyNaCl/) is required
   * [Spotipy](https://spotipy.readthedocs.io/en/2.22.1/) is required
+
+### Can now be installed with a single command:
+```sh
+pip install -r requirements.txt
+```
 
 Copy example_config.ini to config.ini, fill all fields in config.ini
 
