@@ -23,7 +23,7 @@ class Voice():
         self.is_paused = False
         self.current = None
         self.prefix = config['MESSAGES']['PREFIX']
-        self.users_path = config['DISCORD']['USERS_PATH']
+        #self.users_path = config['DISCORD']['USERS_PATH']
 
         self.channel = None #temp
 
@@ -37,7 +37,7 @@ class Voice():
             )
             embed.add_field(name=f'**Requester:** {song.requested_by}', value='', inline=False)
             await self.channel.send(embed=embed)
-            
+
     def on_finished_play(self, song, error):
         print("Finished playing", song)
         self.current = None
@@ -45,7 +45,7 @@ class Voice():
             print(f'An error occurred: {error}')
 
         self.is_playing = False
-        
+
     async def start_playing(self, song):
         self.is_playing = True
         try:
@@ -61,7 +61,7 @@ class Voice():
             await self.channel.send(embed=embed)
         except:
             pass
-        
+
     async def display_help(self, channel):
         embed = discord.Embed(
             title='**Available Commands**',
@@ -80,7 +80,7 @@ class Voice():
         embed.add_field(name=f':satellite: `OTHER`', value='', inline=False)
         embed.add_field(name=f'**stats(WIP)** - Displays stats about you', value='', inline=False)
         embed.add_field(name=f'**help** - display this message', value='', inline=False)
-                    
+
         await self.channel.send(embed=embed)
 
     async def get_total_duration(self):
@@ -110,7 +110,7 @@ class Voice():
                 description= f':scroll: Song queue is empty, use {self.prefix}play to play songs',
                 color=discord.Color.blue()
             )
-                    
+
         await self.channel.send(embed=embed)
 
     async def clear_queue(self, message):
@@ -133,7 +133,7 @@ class Voice():
                 color=discord.Color.blue()
             )
 
-            
+
         await self.channel.send(embed=embed)
 
     async def move_song(self, ind1, ind2):
@@ -153,7 +153,7 @@ class Voice():
         self.songs.insert(ind2 - 1, s)
         print("Successfully moved song")
         return
-        
+
     async def handle_message(self, message):
         if(message.author.bot == True):
             return
@@ -162,12 +162,12 @@ class Voice():
             await self.send_message(message.channel, "jo")
 
         print(f'{message.author} said {message.content}')
-        
+
         if(message.content[0] == self.prefix):
             self.channel = message.channel
         else:
             return
-        
+
         if(message.content == self.prefix + "join"):
             await self.join(message.author)
 
@@ -201,19 +201,19 @@ class Voice():
 
         if((message.content.split(' ')[0] == self.prefix + "p" or message.content.split(' ')[0] == self.prefix + "play")):
             urls = []
-            
+
             if(self.voice_client is None):
                 await self.join(message.author)
 
             requested = ' '.join(message.content.split(' ')[1:])
-                
+
             if("spotify" in requested):
                 urls = await spotify_appender(requested)
             elif("soundcloud" in requested and "sets" in requested and not "?in" in requested):
                 urls = await soundcloud_set_appender(requested)
             else:
                 urls = await general_appender(requested)
-                
+
 
             print(urls)
             for url in urls:
@@ -270,19 +270,19 @@ class Voice():
 
             await message.channel.send(embed=embed)
 
-            
-            
-            
+
+
+
     async def send_message(self, channel, msg):
         await channel.send(msg)
-        
+
     async def join(self, author, force=False):
         channel = author.voice.channel
 
         if(channel == self.current_server):
             print("Already in that server")
             return
-        
+
         if(self.voice_client is None):
             self.voice_client = await channel.connect(self_deaf=True)
             self.current_server = channel
@@ -309,7 +309,7 @@ class Voice():
 
     async def on_move(self, new_channel):
         self.current_server = new_channel
-        
+
         await self.voice_client.move_to(new_channel)
 
         if(not self.is_paused):

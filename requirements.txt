@@ -1,0 +1,5 @@
+yt-dlp
+discord.py
+ffmpeg
+pynacl
+spotipy
