@@ -35,13 +35,26 @@ To be added
   * Python is required
   * [yt-dlp](https://github.com/yt-dlp/yt-dlp/) is required
   * [Discord.py](https://github.com/Rapptz/discord.py) is required
-  * [ffmpeg](https://ffmpeg.org/) is required
+  * [ffmpeg](https://ffmpeg.org/) is required (both pip and standalone version)
   * [PyNaCl](https://pypi.org/project/PyNaCl/) is required
   * [Spotipy](https://spotipy.readthedocs.io/en/2.22.1/) is required
 
-### Can now be installed with a single command:
+### Pip packages can installed with one command:
 ```sh
 pip install -r requirements.txt
+```
+and standalone version of ffmpeg differs in different operating systems:
+
+
+Apt-Get:
+```sh
+sudo apt-get install ffmpeg
+```
+
+
+Windows:
+```ps1
+winget install ffmpeg
 ```
 
 Copy example_config.ini to config.ini, fill all fields in config.ini
