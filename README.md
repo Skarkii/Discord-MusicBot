@@ -59,4 +59,4 @@ winget install ffmpeg
 
 Copy example_config.ini to config.ini, fill all fields in config.ini
 
-Navigate to the bot folder, and run `python3 .`.
+Navigate to the bot folder, and run `python3 .`
