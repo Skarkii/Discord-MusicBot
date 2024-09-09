@@ -13,8 +13,8 @@ class Bot(discord.Client):
         super().__init__(intents=INTENTS)    
         self.TOKEN = TOKEN
         self.voice_connections = []
+        self.song_queue = {}
         self.is_running = True
-    
         self.run(self.TOKEN)
 
     # Thread to download songs
@@ -61,6 +61,9 @@ class Bot(discord.Client):
         if v is None:
             v = Voice(self, message.guild.id)
             self.voice_connections.append(v)
+
+            if message.guild.id in self.song_queue:
+                v.songs = self.song_queue[message.guild.id]
             
         await v.handle_message(message)
 
@@ -69,15 +72,15 @@ class Bot(discord.Client):
             if before.channel and not after.channel:
                 for vc in self.voice_connections:
                     if vc.gid == before.channel.guild.id:
-                        print("I was kicked")
+                        print("I was kicked or disconnected")
+                        self.song_queue[before.channel.guild.id] = vc.songs
                         await vc.on_kicked()
+                        self.voice_connections.remove(vc)
                         break
 
-            if before.channel and after.channel and before.channel != after.channel:
+            elif before.channel and after.channel and before.channel != after.channel:
                 for vc in self.voice_connections:
                     if vc.voice_client.channel == after.channel:
                         print("I was moved")
                         await vc.on_move(after.channel)
                         break
-
-            
