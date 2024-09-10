@@ -23,9 +23,13 @@ class Voice():
         self.is_paused = False
         self.current = None
         self.prefix = config['MESSAGES']['PREFIX']
+        self.last_activity_time = time.time()
+        self.disconnect_after_idle_time = 20 * 60
         #self.users_path = config['DISCORD']['USERS_PATH']
 
         self.channel = None #temp
+
+        self.bot.loop.create_task(self.check_idle())
 
     async def current_song(self):
         if(self.current is not None):
@@ -45,6 +49,7 @@ class Voice():
             print(f'An error occurred: {error}')
 
         self.is_playing = False
+        self.last_activity_time = time.time()
 
     async def start_playing(self, song):
         self.is_playing = True
@@ -59,7 +64,8 @@ class Voice():
             )
             embed.add_field(name=f'**Requester:** {song.requested_by}', value='', inline=False)
             await self.channel.send(embed=embed)
-        except:
+        except Exception as e:
+            print(f"Error playing song: {e}")
             pass
 
     async def display_help(self, channel):
@@ -303,7 +309,15 @@ class Voice():
                 del s
         self.voice_client = None
         self.current_server = None
-
+        
+    async def check_idle(self):
+        while self.is_running:
+            await asyncio.sleep(60)
+            if not self.is_playing and time.time() - self.last_activity_time > self.disconnect_after_idle_time:
+                print("No one wants to listen to any bangers, I guess I'll leave....")
+                await self.leave()
+                break
+            
     async def on_kicked(self):
         await self.leave()
 
