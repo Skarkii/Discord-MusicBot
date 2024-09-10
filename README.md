@@ -12,10 +12,10 @@ A music bot that just should work.
   * Clear queue
   * Shuffle queued songs
   * Move songs in queue
+  * Leave on inactivity
 
 ## To be implemented
   * Take turns queue
-  * Leave on inactivity
   * Bind to text channel in server
   * Blacklist users from using the bot
 
