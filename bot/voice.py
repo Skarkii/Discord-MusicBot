@@ -312,7 +312,7 @@ class Voice():
 
     async def check_idle(self):
         while self.is_running:
-            await asyncio.sleep(60)
+            await asyncio.sleep(10)
             if not self.is_playing and time.time() - self.last_activity_time > self.disconnect_after_idle_time:
                 print("No one wants to listen to any bangers, I guess I'll leave....")
                 await self.leave()
