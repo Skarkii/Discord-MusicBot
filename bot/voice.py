@@ -24,7 +24,7 @@ class Voice():
         self.current = None
         self.prefix = config['MESSAGES']['PREFIX']
         self.last_activity_time = time.time()
-        self.disconnect_after_idle_time = 20 * 60
+        self.disconnect_after_idle_time = float(config['DISCORD']['IDLE_TIMEOUT']) * 60
         #self.users_path = config['DISCORD']['USERS_PATH']
 
         self.channel = None #temp
@@ -309,7 +309,7 @@ class Voice():
                 del s
         self.voice_client = None
         self.current_server = None
-        
+
     async def check_idle(self):
         while self.is_running:
             await asyncio.sleep(60)
@@ -317,7 +317,7 @@ class Voice():
                 print("No one wants to listen to any bangers, I guess I'll leave....")
                 await self.leave()
                 break
-            
+
     async def on_kicked(self):
         await self.leave()
 

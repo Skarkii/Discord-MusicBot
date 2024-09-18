@@ -6,3 +6,4 @@ bot/songs/**
 ./main.py
 bot_cp.py
 config.ini
+.venv/**

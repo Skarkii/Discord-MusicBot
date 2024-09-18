@@ -21,6 +21,7 @@ A music bot that just should work.
 
 ## Customizable
   * Prefix for commands
+  * Timeout time
 
 ## Supported Sources
   * Youtube [Song & Playlist fully working]
