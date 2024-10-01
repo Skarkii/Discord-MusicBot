@@ -116,6 +116,9 @@ class Song:
 
 
     def ytdlp_download(self):
+        return
+
+        # remove when streaming works
         options = {
             'format': 'bestaudio/best',
             'extractaudio': True,
@@ -128,6 +131,10 @@ class Song:
             info = ydl.extract_info(self.url, download=True)
 
     async def download_video(self):
+        return
+
+        #remove when streaming works
+
         try:
             loop = asyncio.get_event_loop()
 
