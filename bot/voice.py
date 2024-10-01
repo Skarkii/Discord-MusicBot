@@ -84,8 +84,6 @@ class Voice():
         embed.add_field(name=f'**clear** - Clears the queue', value='', inline=False)
         embed.add_field(name=f'**move X Y** - Moves song X to position Y', value='', inline=False)
         embed.add_field(name=f'**stop** - Stops playing and disconnects', value='', inline=False)
-
-        embed.add_field(name=f':satellite: `OTHER`', value='', inline=False)
         embed.add_field(name=f'**stats(WIP)** - Displays stats about you', value='', inline=False)
         embed.add_field(name=f'**help** - display this message', value='', inline=False)
 
