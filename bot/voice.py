@@ -54,9 +54,12 @@ class Voice():
     async def start_playing(self, song):
         self.is_playing = True
         try:
-            source = discord.FFmpegPCMAudio(source=song.full_path)
+            FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+
+            source = await discord.FFmpegOpusAudio.from_probe(song.url, **FFMPEG_OPTIONS)
             self.current = song
             self.voice_client.play(source, after=lambda error: self.on_finished_play(song, error))
+
             embed = discord.Embed(
                 title=':headphones: Song Playing Now',
                 description= f'[{song.name}]({song.url})',
@@ -66,7 +69,6 @@ class Voice():
             await self.channel.send(embed=embed)
         except Exception as e:
             print(f"Error playing song: {e}")
-            pass
 
     async def display_help(self, channel):
         embed = discord.Embed(
@@ -139,11 +141,9 @@ class Voice():
                 color=discord.Color.blue()
             )
 
-
         await self.channel.send(embed=embed)
 
     async def move_song(self, ind1, ind2):
-        #print(f"MOVE SONG {ind1} to {ind2}")
         ind1 = int(ind1)
         ind2 = int(ind2)
 
@@ -164,9 +164,6 @@ class Voice():
         if(message.author.bot == True):
             return
 
-        if(message.content == "jo"):
-            await self.send_message(message.channel, "jo")
-
         print(f'{message.author} said {message.content}')
 
         if(message.content[0] == self.prefix):
@@ -176,9 +173,6 @@ class Voice():
 
         if(message.content == self.prefix + "join"):
             await self.join(message.author)
-
-#        if(message.content == self.prefix + "move"):
-#            await self.join(message.author, force=True)
 
         if(message.content == self.prefix + "help" or message.content == self.prefix + "commands"):
             await self.display_help(message.channel)
@@ -194,11 +188,6 @@ class Voice():
 
         if(message.content == self.prefix + "clear"):
             await self.clear_queue(message)
-
-        if(message.content == self.prefix + "sleep"):
-            await self.send_message(message.channel, "Sleeping for five secounds")
-            await self.long_task()
-            await self.send_message(message.channel, "Finished sleeping!")
 
         if(message.content.split(' ')[0] == self.prefix + "move" and len(message.content.split(' ')) == 3):
             ind1 = message.content.split(' ')[1]
@@ -220,10 +209,7 @@ class Voice():
             else:
                 urls = await general_appender(requested)
 
-
-            print(urls)
             for url in urls:
-                print("URL :", url)
                 s = Song(url['url'], url['name'], url['artist'], message.author.display_name, url['duration'])
                 self.songs.append(s)
 
@@ -239,10 +225,10 @@ class Voice():
         if(message.content == self.prefix + "pause"):
             if(self.is_paused):
                 self.voice_client.resume()
-                self.is_paused = False
             else:
                 self.voice_client.pause()
-                self.is_paused = True
+
+            self.is_paused = not self.is_paused
 
         if(message.content == self.prefix + "queue" or message.content == self.prefix + "q"):
             await self.display_queue(message.channel)
@@ -277,8 +263,6 @@ class Voice():
             await message.channel.send(embed=embed)
 
 
-
-
     async def send_message(self, channel, msg):
         await channel.send(msg)
 
@@ -294,9 +278,8 @@ class Voice():
             self.current_server = channel
         else:
             if(len(self.current_server.members) > 1 and force == False):
-                #print(f"I'm connected in channel with other users, use {self.prefix}move to override")
-                #return
                 pass
+
             await self.voice_client.disconnect()
             self.voice_client = await channel.connect(self_deaf=True)
             self.current_server = channel
@@ -315,6 +298,12 @@ class Voice():
             await asyncio.sleep(10)
             if not self.is_playing and time.time() - self.last_activity_time > self.disconnect_after_idle_time:
                 print("No one wants to listen to any bangers, I guess I'll leave....")
+                embed = discord.Embed(
+                    title=":stop_button: **No one wants to listen to any bangers, I guess I'll leave....**",
+                    color=discord.Color.blue()
+                )
+                await self.channel.send(embed=embed)
+
                 await self.leave()
                 break
 

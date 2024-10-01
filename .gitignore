@@ -7,3 +7,5 @@ bot/songs/**
 bot_cp.py
 config.ini
 .venv/**
+**.venv**
+**venv**

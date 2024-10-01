@@ -10,7 +10,7 @@ from voice import Voice as Voice
 
 class Bot(discord.Client):
     def __init__(self, TOKEN, INTENTS):
-        super().__init__(intents=INTENTS)    
+        super().__init__(intents=INTENTS)
         self.TOKEN = TOKEN
         self.voice_connections = []
         self.song_queue = {}
@@ -22,13 +22,15 @@ class Bot(discord.Client):
         await self.wait_until_ready()
         found = False
         while not self.is_closed():
+            await asyncio.sleep(0.5)
             if not found:
                 await asyncio.sleep(0.5)
             found = False
             for vc in self.voice_connections:
                 for song in vc.songs:
                     if not song.is_ready:
-                        await song.download()
+                        #await song.download()
+                        song.is_ready = True
                         found = True
                         break
 
@@ -42,15 +44,14 @@ class Bot(discord.Client):
                 if(len(vc.songs) > 0 and vc.songs[0].is_ready and not vc.voice_client.is_playing() and not vc.is_paused):
                     s = vc.songs.pop(0)
                     await vc.start_playing(s)
-                    print("Start playing songs!", s.url)
                     del s
-        
-        
+
+
     async def on_ready(self):
         print(f'Logged in as {self.user.name}')
         self.loop.create_task(self.play_task())
         self.loop.create_task(self.download_task())
-        
+
     async def on_message(self, message):
         v = None
         for vc in self.voice_connections:
@@ -64,7 +65,7 @@ class Bot(discord.Client):
 
             if message.guild.id in self.song_queue:
                 v.songs = self.song_queue[message.guild.id]
-            
+
         await v.handle_message(message)
 
     async def on_voice_state_update(self, member, before, after):
