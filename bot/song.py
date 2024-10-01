@@ -64,9 +64,9 @@ async def general_appender(playlist_url):
 
             if 'entries' in info:
                 for entry in info['entries']:
-                    url.append({'url': entry['url'], 'name': entry['title'], 'artist': "", 'duration': entry['duration']})
+                    url.append({'playback_url': entry['url'], 'url': entry['webpage_url'],'name': entry['title'], 'artist': "", 'duration': entry['duration']})
             else:
-                url.append({'url': info['url'], 'name': info['title'], 'artist': "", 'duration': info['duration']})
+                url.append({'playback_url': info['url'], 'url': info['webpage_url'], 'name': info['title'], 'artist': "", 'duration': info['duration']})
 
             return list(url)
 
@@ -75,7 +75,7 @@ async def general_appender(playlist_url):
         return []
 
 class Song:
-    def __init__(self, url, name="no-title",artist="", requested_by="Noone", duration=0):
+    def __init__(self, url, playback_url, name="no-title",artist="", requested_by="Noone", duration=0):
         self.file_path = config['DISCORD']['SONGS_FOLDER']
         self.file_name = str(uuid.uuid4())
         self.full_path = self.file_path + self.file_name
@@ -85,6 +85,7 @@ class Song:
         self.is_ready = False
         self.requested_by = requested_by
         self.url = url
+        self.playback_url = playback_url
 
     def __del__(self):
         return

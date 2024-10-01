@@ -56,7 +56,7 @@ class Voice():
         try:
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-            source = await discord.FFmpegOpusAudio.from_probe(song.url, **FFMPEG_OPTIONS)
+            source = await discord.FFmpegOpusAudio.from_probe(song.playback_url, **FFMPEG_OPTIONS)
             self.current = song
             self.voice_client.play(source, after=lambda error: self.on_finished_play(song, error))
 
@@ -96,7 +96,15 @@ class Voice():
         return duration
 
     async def display_queue(self, channel):
-        if(len(self.songs) > 0):
+        embed = None
+
+        if(len(self.songs) <= 0):
+            embed = discord.Embed(
+                title=':headphones: Songs in Queue',
+                description= f':scroll: Song queue is empty, use {self.prefix}play to play songs',
+                color=discord.Color.blue()
+            )
+        else:
             total_duration = await self.get_total_duration()
             embed = discord.Embed(
                 title=':headphones: Songs in Queue',
@@ -109,13 +117,11 @@ class Voice():
                 i = i + 1
                 if(i > 10):
                     break
-                embed.add_field(name=f'', value=f'`{i}` **-** [{song.name}]({song.url}) - `{int(song.duration // 60)}:{str(int(song.duration % 60)).zfill(2)}`', inline=False)
-        else:
-            embed = discord.Embed(
-                title=':headphones: Songs in Queue',
-                description= f':scroll: Song queue is empty, use {self.prefix}play to play songs',
-                color=discord.Color.blue()
-            )
+                embed.add_field(
+                    name=f'',
+                    value=f"`{i}` **-** [{song.name}]({song.url}) - `{int(song.duration // 60)}:{str(int(song.duration % 60)).zfill(2)}`",
+                    inline=False
+                )
 
         await self.channel.send(embed=embed)
 
@@ -208,7 +214,7 @@ class Voice():
                 urls = await general_appender(requested)
 
             for url in urls:
-                s = Song(url['url'], url['name'], url['artist'], message.author.display_name, url['duration'])
+                s = Song(url['url'], url['playback_url'], url['name'], url['artist'], message.author.display_name, url['duration'])
                 self.songs.append(s)
 
             if(len(urls) > 0):
