@@ -53,6 +53,7 @@ async def general_appender(playlist_url):
         'format': 'bestaudio/best',
         'quiet': False,
         'ignoreerrors': True,
+        'extract_flat': True
     }
 
     try:
@@ -62,11 +63,13 @@ async def general_appender(playlist_url):
             if(info is None):
                 info = ydl.extract_info(f"ytsearch:{playlist_url}", download=False)
 
+            print(info)
+
             if 'entries' in info:
                 for entry in info['entries']:
-                    url.append({'playback_url': entry['url'], 'url': entry['webpage_url'],'name': entry['title'], 'artist': "", 'duration': entry['duration']})
+                    url.append({'url': entry['url'],'name': entry['title'], 'artist': "", 'duration': entry['duration']})
             else:
-                url.append({'playback_url': info['url'], 'url': info['webpage_url'], 'name': info['title'], 'artist': "", 'duration': info['duration']})
+                url.append({'url': info['url'], 'name': info['title'], 'artist': "", 'duration': info['duration']})
 
             return list(url)
 
@@ -75,7 +78,7 @@ async def general_appender(playlist_url):
         return []
 
 class Song:
-    def __init__(self, url, playback_url, name="no-title",artist="", requested_by="Noone", duration=0):
+    def __init__(self, url, name="no-title",artist="", requested_by="Noone", duration=0):
         self.file_path = config['DISCORD']['SONGS_FOLDER']
         self.file_name = str(uuid.uuid4())
         self.full_path = self.file_path + self.file_name
@@ -85,18 +88,6 @@ class Song:
         self.is_ready = False
         self.requested_by = requested_by
         self.url = url
-        self.playback_url = playback_url
-
-    def __del__(self):
-        return
-
-        # Remove when working without downloading
-        try:
-            os.remove(self.full_path)
-        except Exception as e:
-            print(f"Error removing file: {e}")
-        print("Song deleted")
-
 
     async def spotify_to_youtube_url(self):
         ydl_opts = {
@@ -114,46 +105,21 @@ class Song:
             print(f'YT DLP Error: {e}')
             return []
 
-
-
-    def ytdlp_download(self):
-        return
-
-        # remove when streaming works
-        options = {
+    async def get_playback_url(self):
+        ydl_opts = {
             'format': 'bestaudio/best',
-            'extractaudio': True,
-            'audioformat': 'mp3',
-            'outtmpl': f'{self.file_path}{self.file_name}',
-            'noplaylist': True,
+            'quiet': False,
+            'ignoreerrors': True,
         }
 
-        with yt_dlp.YoutubeDL(options) as ydl:
-            info = ydl.extract_info(self.url, download=True)
-
-    async def download_video(self):
-        return
-
-        #remove when streaming works
-
         try:
-            loop = asyncio.get_event_loop()
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(self.url, download=False)
+                playback_url = info['url']
+                print("info: -----:" , info)
+                print(playback_url)
+                return playback_url
 
-            if("spotify" in self.url):
-                self.url = await self.spotify_to_youtube_url()
-
-            await loop.run_in_executor(None, self.ytdlp_download)
-
-        except Exception as e:
-            print(f'An error occurred: {e}')
-
-    async def download(self):
-        return
-
-        # Remove when working without download
-        try:
-            await self.download_video()
-        except Exception as e:
-            print("Youtube download failed", e)
-        self.is_ready = True
-        return True
+        except yt_dlp.DownloadError as e:
+            print(f'YT DLP Error: {e}')
+            return []
