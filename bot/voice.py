@@ -89,6 +89,7 @@ class Voice():
         embed.add_field(name=f'**stop** - Stops playing and disconnects', value='', inline=False)
         embed.add_field(name=f'**stats(WIP)** - Displays stats about you', value='', inline=False)
         embed.add_field(name=f'**help** - display this message', value='', inline=False)
+        embed.add_field(name=f'**about** - Displays the information about the bot', value='', inline=False)
 
         await self.channel.send(embed=embed)
 
@@ -195,6 +196,16 @@ class Voice():
 
         if(message.content == self.prefix + "clear"):
             await self.clear_queue(message)
+
+        if(message.content == self.prefix + "about"):
+            embed = discord.Embed(
+                title='Discord MusicBot',
+                description= f'Repo: https://github.com/Skarkii/Discord-MusicBot\nVersion: 0.1',
+                color=discord.Color.blue()
+            )
+
+            await self.channel.send(embed=embed)
+
 
         if(message.content.split(' ')[0] == self.prefix + "move" and len(message.content.split(' ')) == 3):
             ind1 = message.content.split(' ')[1]
