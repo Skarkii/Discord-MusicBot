@@ -80,7 +80,7 @@ async def general_appender(playlist_url):
         'format': 'bestaudio/best',
         'quiet': False,
         'ignoreerrors': True,
-        'extract_flat': True
+        'extract_flat': 'in_playlist'
     }
 
     try:
@@ -89,6 +89,8 @@ async def general_appender(playlist_url):
 
             if(info is None):
                 info = ydl.extract_info(f"ytsearch:{playlist_url}", download=False)
+
+            print(info)
 
             if 'entries' in info:
                 for entry in info['entries']:
