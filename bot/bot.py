@@ -17,22 +17,6 @@ class Bot(discord.Client):
         self.is_running = True
         self.run(self.TOKEN)
 
-    # Thread to download songs
-    async def download_task(self):
-        await self.wait_until_ready()
-        found = False
-        while not self.is_closed():
-            await asyncio.sleep(0.5)
-            if not found:
-                await asyncio.sleep(0.5)
-            found = False
-            for vc in self.voice_connections:
-                for song in vc.songs:
-                    if not song.is_ready:
-                        #await song.download()
-                        song.is_ready = True
-                        found = True
-                        break
 
     # Thread to start playing songs
     async def play_task(self):
@@ -41,7 +25,7 @@ class Bot(discord.Client):
         while not self.is_closed():
             await asyncio.sleep(0.5)
             for vc in self.voice_connections:
-                if(len(vc.songs) > 0 and vc.songs[0].is_ready and not vc.voice_client.is_playing() and not vc.is_paused):
+                if(len(vc.songs) > 0 and not vc.voice_client.is_playing() and not vc.is_paused):
                     s = vc.songs.pop(0)
                     await vc.start_playing(s)
                     del s
@@ -50,7 +34,6 @@ class Bot(discord.Client):
     async def on_ready(self):
         print(f'Logged in as {self.user.name}')
         self.loop.create_task(self.play_task())
-        self.loop.create_task(self.download_task())
 
     async def on_message(self, message):
         v = None

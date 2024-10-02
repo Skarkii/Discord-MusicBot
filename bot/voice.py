@@ -53,8 +53,6 @@ class Voice():
 
     async def start_playing(self, song):
         self.is_playing = True
-        playback_url = await song.get_playback_url()
-        print("RETRIEVED PLAYBACK URL :", playback_url)
         try:
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
@@ -212,13 +210,10 @@ class Voice():
             requested = ' '.join(message.content.split(' ')[1:])
 
             if("spotify" in requested):
-                print("Spotify")
                 urls = await spotify_appender(requested)
             elif("soundcloud" in requested and "sets" in requested and not "?in" in requested):
                 urls = await soundcloud_set_appender(requested)
-                print("soundcloud")
             else:
-                print("youtube")
                 urls = await general_appender(requested)
 
             for url in urls:
