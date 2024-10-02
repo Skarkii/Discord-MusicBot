@@ -56,7 +56,10 @@ class Voice():
         try:
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-            source = await discord.FFmpegOpusAudio.from_probe(song.playback_url, **FFMPEG_OPTIONS)
+            playback_url = await song.get_playback_url()
+            print("RETRIEVED PLAYBACK URL :", playback_url)
+
+            source = await discord.FFmpegOpusAudio.from_probe(playback_url, **FFMPEG_OPTIONS)
             self.current = song
             self.voice_client.play(source, after=lambda error: self.on_finished_play(song, error))
 
@@ -214,7 +217,7 @@ class Voice():
                 urls = await general_appender(requested)
 
             for url in urls:
-                s = Song(url['url'], url['playback_url'], url['name'], url['artist'], message.author.display_name, url['duration'])
+                s = Song(url['url'], url['name'], url['artist'], message.author.display_name, url['duration'])
                 self.songs.append(s)
 
             if(len(urls) > 0):

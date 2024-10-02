@@ -25,7 +25,7 @@ A music bot that just should work.
 
 ## Supported Sources
   * Youtube [Song & Playlist fully working]
-  * Soundcloud [Song fully working]
+  * Soundcloud [Song fully working, Playlist will play with visual in chat]
   * Spotify [Song & Playlist fully working]
   * Generally all supported formats from [yt-dlp - Supported Sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md), though most untested.
 
