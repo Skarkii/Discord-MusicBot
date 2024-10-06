@@ -1,4 +1,5 @@
 import threading
+from tokenize import String
 import yt_dlp
 import discord
 import time
@@ -96,10 +97,11 @@ class Voice():
     async def get_total_duration(self):
         duration = 0
         for song in self.songs:
-            duration = duration + song.duration
+            if(isinstance(song.duration, int)):
+                duration = duration + song.duration
         return duration
 
-    async def display_queue(self, channel):
+    async def display_queue(self, channel, page=1):
         embed = None
 
         if(len(self.songs) <= 0):
@@ -110,20 +112,37 @@ class Voice():
             )
         else:
             total_duration = await self.get_total_duration()
+            max_pages = (len(self.songs)//10)+1
+            if(page < 1):
+                page = 1
+            elif(page > max_pages):
+                page = max_pages
             embed = discord.Embed(
                 title=':headphones: Songs in Queue',
-                description= f':scroll: Queue length: {str(len(self.songs))} | Page Number: {(0//10)+1}/{(len(self.songs)//10)+1} | :hourglass: Duration: `{int(total_duration // 60)}:{str(int(total_duration % 60)).zfill(2)}`',
+                description= f':scroll: Queue length: {str(len(self.songs))} | Page Number: {page}/{max_pages} | :hourglass: Duration: `{int(total_duration // 60)}:{str(int(total_duration % 60)).zfill(2)}`',
                 color=discord.Color.blue()
             )
 
             i = 0
+            skipped = 0
             for song in self.songs:
+                if(skipped // 10 < page - 1):
+                    skipped = skipped + 1
+                    continue
+
                 i = i + 1
                 if(i > 10):
                     break
+
+                song_duration_sec, song_duration_min = 0, 0
+
+                if(song.duration is not None):
+                    song_duration_min = int(song.duration // 60)
+                    song_duration_sec = str(int(song.duration % 60)).zfill(2)
+
                 embed.add_field(
                     name=f'',
-                    value=f"`{i}` **-** [{song.name}]({song.url}) - `{int(song.duration // 60)}:{str(int(song.duration % 60)).zfill(2)}`",
+                    value=f"`{i+skipped}` **-** [{song.name}]({song.url}) - `{song_duration_min}:{song_duration_sec}`",
                     inline=False
                 )
 
@@ -248,7 +267,13 @@ class Voice():
 
             self.is_paused = not self.is_paused
 
-        if(message.content == self.prefix + "queue" or message.content == self.prefix + "q"):
+        if(message.content.split(' ')[0] == self.prefix + "queue" or message.content.split(' ')[0] == self.prefix + "q"):
+            if(len(message.content.split(' ')) > 1):
+                if(message.content.split(' ')[1].isnumeric()):
+                    page = int(message.content.split(' ')[1])
+                    await self.display_queue(message.channel, page)
+                    return
+
             await self.display_queue(message.channel)
 
         if(message.content == self.prefix + "skip"):
