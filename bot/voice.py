@@ -219,7 +219,7 @@ class Voice():
         if(message.content == self.prefix + "about"):
             embed = discord.Embed(
                 title='Discord MusicBot',
-                description= f'Repo: https://github.com/Skarkii/Discord-MusicBot\nVersion: 0.1',
+                description= f'Repo: https://github.com/Skarkii/Discord-MusicBot\nVersion: 1.0',
                 color=discord.Color.blue()
             )
 
