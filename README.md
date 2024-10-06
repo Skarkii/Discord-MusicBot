@@ -14,17 +14,12 @@ A music bot that just should work.
   * Move songs in queue
   * Leave on inactivity
 
-## To be implemented
-  * Take turns queue
-  * Bind to text channel in server
-  * Blacklist users from using the bot
-
 ## Customizable
   * Prefix for commands
   * Timeout time
 
 ## Supported Sources
-  * Youtube [Song flly working, Playlist will play correctly with invalid duration in chat]
+  * Youtube [Song fully working]
   * Soundcloud [Song fully working, Playlist will play correctly with invalid title & duration in chat]
   * Spotify [Song & Playlist fully working]
   * Generally all supported formats from [yt-dlp - Supported Sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md), though most untested.
