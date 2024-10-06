@@ -277,11 +277,15 @@ class Voice():
             else:
                 urls = await general_appender(requested)
 
+            any_song_added = False
             for url in urls:
+                if((url['name'] == "[Deleted video]" or url['name'] == "[Private video]")):
+                    continue
                 s = Song(url['url'], url['name'], url['artist'], message.author.display_name, url['duration'])
                 self.songs.append(s)
+                any_song_added = True
 
-            if(len(urls) > 0):
+            if(any_song_added):
                 await message.add_reaction('\u2705')
             else:
                 await message.add_reaction('\u26D4')
