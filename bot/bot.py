@@ -15,7 +15,7 @@ class Bot(discord.Client):
         self.voice_connections = []
         self.song_queue = {}
         self.is_running = True
-        self.version = 1.0
+        self.version = 1.1
         self.run(self.TOKEN)
 
 
