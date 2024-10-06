@@ -84,6 +84,52 @@ def get_server_played(data, server_id, user_id):
                     return c['songs_played']
     return -1
 
+def is_server_admin(data, server_id, user_id):
+    if not any(server['id'] == server_id for server in data['servers']):
+        add_server(data, server_id)
+
+    if(not user_in_server(data, user_id, server_id)):
+        add_user(data, server_id, user_id)
+
+    for s in data['servers']:
+        if(s['id'] == server_id):
+            for c in s['users']:
+                if(c['id'] == user_id):
+                    return c['admin']
+    return False
+
+def is_user_banned(data, server_id, user_id):
+    if not any(server['id'] == server_id for server in data['servers']):
+        add_server(data, server_id)
+
+    if(not user_in_server(data, user_id, server_id)):
+        add_user(data, server_id, user_id)
+
+    for s in data['servers']:
+        if(s['id'] == server_id):
+            for c in s['users']:
+                if(c['id'] == user_id):
+                    return c['banned']
+    return False
+
+def add_song_played(file_name, server_id, user_id, count):
+    data = read_json(file_name)
+
+    if not any(server['id'] == server_id for server in data['servers']):
+        add_server(data, server_id)
+
+    if(not user_in_server(data, user_id, server_id)):
+        add_user(data, server_id, user_id)
+
+    for s in data['servers']:
+        if(s['id'] == server_id):
+            for c in s['users']:
+                if(c['id'] == user_id):
+                    c['songs_played'] = c['songs_played'] + count
+                    write_json(data, file_name)
+                    return
+
+
 def get_globally_played(data, user_id):
     count = 0
     for s in data['servers']:
@@ -97,5 +143,7 @@ def get_stats(server_id, user_id, file_path):
     data = read_json(file_path)
     l = get_server_played(data, server_id, user_id)
     g = get_globally_played(data, user_id)
+    a = is_server_admin(data, server_id, user_id)
+    b = is_user_banned(data, server_id, user_id)
     write_json(data, file_path)
-    return l, g
+    return l, g, a, b
