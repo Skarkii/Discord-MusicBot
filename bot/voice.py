@@ -1,5 +1,6 @@
 import threading
 from tokenize import String
+from discord.app_commands.transformers import NoneType
 import yt_dlp
 import discord
 import time
@@ -200,21 +201,29 @@ class Voice():
 
         if(message.content == self.prefix + "join"):
             await self.join(message.author)
+            await message.add_reaction('\u2705')
+            return
 
         if(message.content == self.prefix + "help" or message.content == self.prefix + "commands"):
             await self.display_help(message.channel)
+            return
 
         if(message.content == self.prefix + "shuffle"):
             await self.shuffle_list(message)
+            return
 
         if(message.content == self.prefix + "c" or message.content == self.prefix + "current"):
             await self.current_song()
+            return
 
         if(message.content == self.prefix + "leave"):
+            await message.add_reaction('\u2705')
             await self.leave()
+            return
 
         if(message.content == self.prefix + "clear"):
             await self.clear_queue(message)
+            return
 
         if(message.content == self.prefix + "about"):
             embed = discord.Embed(
@@ -224,15 +233,28 @@ class Voice():
             )
 
             await self.channel.send(embed=embed)
+            return
 
 
         if(message.content.split(' ')[0] == self.prefix + "move" and len(message.content.split(' ')) == 3):
             ind1 = message.content.split(' ')[1]
             ind2 = message.content.split(' ')[2]
             await self.move_song(ind1, ind2)
+            return
 
         if((message.content.split(' ')[0] == self.prefix + "p" or message.content.split(' ')[0] == self.prefix + "play")):
             urls = []
+
+            if(len(message.content.split(' ')) <= 1):
+                embed = discord.Embed(
+                    title=':x: **You need to include a link or search query**',
+                    description=f'USAGE:\n{self.prefix}p Best song ever\nor\n{self.prefix}p https://www.youtube.com/watch?v=o_v9MY_FMcw',
+                    color=discord.Color.blue()
+                )
+                await message.channel.send(embed=embed)
+                await message.add_reaction('\u26D4')
+                return
+
 
             if(self.voice_client is None):
                 await self.join(message.author)
@@ -266,16 +288,24 @@ class Voice():
                 await message.add_reaction('\u26D4')
             return
 
-        if(message.content.split(' ')[0] == self.prefix + "skip"):
-            self.voice_client.stop()
-
         if(message.content == self.prefix + "pause"):
-            if(self.is_paused):
-                self.voice_client.resume()
-            else:
-                self.voice_client.pause()
+            try:
+                if(self.is_paused):
+                    self.voice_client.resume()
+                else:
+                    self.voice_client.pause()
+            except AttributeError:
+                await message.add_reaction('\u26D4')
+                embed = discord.Embed(
+                    title=':x: **I am not in any channel, I can not pause**',
+                    color=discord.Color.blue()
+                )
+                await message.channel.send(embed=embed)
+                return
 
             self.is_paused = not self.is_paused
+            await message.add_reaction('\u2705')
+            return
 
         if(message.content.split(' ')[0] == self.prefix + "queue" or message.content.split(' ')[0] == self.prefix + "q"):
             if(len(message.content.split(' ')) > 1):
@@ -285,24 +315,43 @@ class Voice():
                     return
 
             await self.display_queue(message.channel)
+            return
 
         if(message.content == self.prefix + "skip"):
-            self.voice_client.stop()
-            embed = discord.Embed(
-                title=':fast_forward: **Song Skipped**',
-                color=discord.Color.blue()
-            )
+            try:
+                self.voice_client.stop()
+                embed = discord.Embed(
+                    title=':fast_forward: **Song Skipped**',
+                    color=discord.Color.blue()
+                )
 
-            await message.channel.send(embed=embed)
+                await message.channel.send(embed=embed)
+            except AttributeError:
+                embed = discord.Embed(
+                    title=':x: **I am not playing any music, I can not skip**',
+                    color=discord.Color.blue()
+                )
+
+                await message.channel.send(embed=embed)
+            return
 
         if(message.content == self.prefix + "stop"):
-            await self.leave()
-            embed = discord.Embed(
-                title=':stop_button: **Player Stopped**',
-                color=discord.Color.blue()
-            )
+            try:
+                self.voice_client.stop()
+                await self.leave()
+                embed = discord.Embed(
+                    title=':stop_button: **Player Stopped**',
+                    color=discord.Color.blue()
+                )
+                await message.channel.send(embed=embed)
+            except AttributeError:
+                embed = discord.Embed(
+                    title=':x: **I am not playing**',
+                    color=discord.Color.blue()
+                )
+                await message.channel.send(embed=embed)
 
-            await message.channel.send(embed=embed)
+            return
 
         if(message.content == self.prefix + "stats"):
             locally, globally = get_stats(message.guild.id, message.author.id, self.users_path)
@@ -314,6 +363,7 @@ class Voice():
             embed.add_field(name=f'Songs Played in this anywhere: {globally}', value="", inline=False)
 
             await message.channel.send(embed=embed)
+            return
 
 
     async def send_message(self, channel, msg):
