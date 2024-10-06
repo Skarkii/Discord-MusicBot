@@ -357,7 +357,7 @@ class Voice():
             return
 
         if(message.content == self.prefix + "stats"):
-            locally, globally = get_stats(message.guild.id, message.author.id, self.users_path)
+            locally, globally = get_stats(message.guild.id, message.author.id, "./db.json")
             embed = discord.Embed(
                 title=f":books: **{message.author.display_name}'s Statistics**",
                 color=discord.Color.blue()

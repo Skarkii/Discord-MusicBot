@@ -10,3 +10,5 @@ config.ini
 **.venv**
 **venv**
 **.cache**
+**users.json**
+**.json**
