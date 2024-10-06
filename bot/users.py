@@ -46,7 +46,8 @@ def add_user(data, server_id, user_id):
         new_user = {
             "id" : user_id,
             "banned": False,
-            "songs_played": 0
+            "songs_played": 0,
+            "admin": False
         }
 
         for s in data['servers']:
