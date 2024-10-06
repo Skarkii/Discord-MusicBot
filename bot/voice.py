@@ -1,6 +1,5 @@
 import threading
 from tokenize import String
-from discord.app_commands.transformers import NoneType
 import yt_dlp
 import discord
 import time
