@@ -106,9 +106,6 @@ async def general_appender(playlist_url):
 
 class Song:
     def __init__(self, url, name="no-title",artist="", requested_by="Noone", duration=0):
-        self.file_path = config['DISCORD']['SONGS_FOLDER']
-        self.file_name = str(uuid.uuid4())
-        self.full_path = self.file_path + self.file_name
         self.duration = duration
         self.name = name
         self.artist = artist
