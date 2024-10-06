@@ -240,6 +240,16 @@ class Voice():
             requested = ' '.join(message.content.split(' ')[1:])
 
             if("spotify" in requested):
+                if(config['SPOTIFY']['ENABLED'] != "True"):
+                    print("Spotify is disabled!")
+                    embed = discord.Embed(
+                        title=':x: **Spotify is not Enabled**',
+                        color=discord.Color.blue()
+                    )
+                    await message.channel.send(embed=embed)
+                    await message.add_reaction('\u26D4')
+                    return
+
                 urls = await spotify_appender(requested)
             elif("soundcloud" in requested and "sets" in requested and not "?in" in requested):
                 urls = await soundcloud_set_appender(requested)
