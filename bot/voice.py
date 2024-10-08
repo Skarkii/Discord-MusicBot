@@ -26,7 +26,6 @@ class Voice():
         self.prefix = config['MESSAGES']['PREFIX']
         self.last_activity_time = time.time()
         self.disconnect_after_idle_time = float(config['DISCORD']['IDLE_TIMEOUT']) * 60
-        #self.users_path = config['DISCORD']['USERS_PATH']
 
         self.channel = None #temp
 
@@ -284,7 +283,10 @@ class Voice():
                 s = Song(url['url'], url['name'], url['artist'], message.author.display_name, url['duration'])
                 self.songs.append(s)
                 songs_added = songs_added + 1
-                add_song_played("./db.json", message.guild.id, message.author.id, songs_added)
+
+            add_song_played("./db.json", message.guild.id, message.author.id, songs_added)
+            print(songs_added)
+
 
             if(songs_added > 0):
                 await message.add_reaction('\u2705')
