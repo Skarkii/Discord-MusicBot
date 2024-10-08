@@ -26,7 +26,6 @@ class Voice():
         self.prefix = config['MESSAGES']['PREFIX']
         self.last_activity_time = time.time()
         self.disconnect_after_idle_time = float(config['DISCORD']['IDLE_TIMEOUT']) * 60
-        #self.users_path = config['DISCORD']['USERS_PATH']
 
         self.channel = None #temp
 
@@ -199,7 +198,7 @@ class Voice():
             return
 
         if(message.content == self.prefix + "join"):
-            await self.join(message.author)
+            await self.join(message.author, message)
             await message.add_reaction('\u2705')
             return
 
@@ -256,7 +255,7 @@ class Voice():
 
 
             if(self.voice_client is None):
-                await self.join(message.author)
+                await self.join(message.author, message)
 
             requested = ' '.join(message.content.split(' ')[1:])
 
@@ -277,15 +276,19 @@ class Voice():
             else:
                 urls = await general_appender(requested)
 
-            any_song_added = False
+            songs_added = 0
             for url in urls:
                 if((url['name'] == "[Deleted video]" or url['name'] == "[Private video]")):
                     continue
                 s = Song(url['url'], url['name'], url['artist'], message.author.display_name, url['duration'])
                 self.songs.append(s)
-                any_song_added = True
+                songs_added = songs_added + 1
 
-            if(any_song_added):
+            add_song_played("./db.json", message.guild.id, message.author.id, songs_added)
+            print(songs_added)
+
+
+            if(songs_added > 0):
                 await message.add_reaction('\u2705')
             else:
                 await message.add_reaction('\u26D4')
@@ -357,13 +360,15 @@ class Voice():
             return
 
         if(message.content == self.prefix + "stats"):
-            locally, globally = get_stats(message.guild.id, message.author.id, self.users_path)
+            locally, globally, is_admin, is_banned = get_stats(message.guild.id, message.author.id, "./db.json")
             embed = discord.Embed(
                 title=f":books: **{message.author.display_name}'s Statistics**",
                 color=discord.Color.blue()
             )
             embed.add_field(name=f'Songs Played in this server: {locally}', value="", inline=False)
             embed.add_field(name=f'Songs Played in this anywhere: {globally}', value="", inline=False)
+            embed.add_field(name=f'admin: {is_admin}', value="", inline=False)
+            embed.add_field(name=f'banned: {is_banned}', value="", inline=False)
 
             await message.channel.send(embed=embed)
             return
@@ -372,8 +377,17 @@ class Voice():
     async def send_message(self, channel, msg):
         await channel.send(msg)
 
-    async def join(self, author, force=False):
-        channel = author.voice.channel
+    async def join(self, author, message, force=False):
+        try:
+            channel = author.voice.channel
+        except:
+            embed = discord.Embed(
+                title=f"**You need to be in a channel to play music!**",
+                color=discord.Color.blue()
+            )
+            await message.channel.send(embed=embed)
+            return
+
 
         if(channel == self.current_server):
             print("Already in that server")
