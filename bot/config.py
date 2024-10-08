@@ -1,10 +1,10 @@
 import configparser
 
 config = configparser.ConfigParser()
-config.read('bot\example_config.ini')
+config.read('config.ini')
 
 REQUIRED_CONFIG = {
-                'DISCORD': ['TOKEN', 'OWNER_ID', 'NOTIFY_NEW_VERSIONS', 'IDLE_TIMOUT'],
+                'DISCORD': ['TOKEN', 'OWNER_ID', 'NOTIFY_NEW_VERSIONS', 'IDLE_TIMEOUT'],
                 'MESSAGES': ['PREFIX'],
                 'SPOTIFY': ['ENABLED', 'ID', 'SECRET']
                 }
