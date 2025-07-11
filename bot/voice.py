@@ -85,6 +85,7 @@ class Voice():
         embed.add_field(name=f'**queue** - Displays the queue', value='', inline=False)
         embed.add_field(name=f'**skip** - Skip the current song', value='', inline=False)
         embed.add_field(name=f'**clear** - Clears the queue', value='', inline=False)
+        embed.add_field(name=f'**remove** - Remove song from queue', value='', inline=False)
         embed.add_field(name=f'**move X Y** - Moves song X to position Y', value='', inline=False)
         embed.add_field(name=f'**stop** - Stops playing and disconnects', value='', inline=False)
         embed.add_field(name=f'**stats(WIP)** - Displays stats about you', value='', inline=False)
@@ -152,6 +153,38 @@ class Voice():
             s = self.songs.pop(0)
             del s
         await message.add_reaction('\u2705')
+
+    async def remove_song_from_queue(self, song_number, message):
+        try:
+              song_number = int(song_number)
+
+        except ValueError:
+            embed = discord.Embed(
+                title=':x: **That character is not an positive integer**',
+                description=f'USAGE:\n{self.prefix}remove 2\nor\n{self.prefix}rm 3',
+                color=discord.Color.blue()
+            )
+            await message.channel.send(embed=embed)
+            await message.add_reaction('\u26D4')
+            return
+        
+        if (len(self.songs) > 0 and len(self.songs) >= song_number):
+            popped_song = self.songs.pop(song_number -1)
+            print(f"Popped value: {popped_song.name}")
+            embed = discord.Embed(
+                title='Succsefully removed song from que',
+                description= f'[{popped_song.name}]({popped_song.url})',
+                color=discord.Color.blue()
+            )
+            embed.add_field(name=f'**Requested from: ** {popped_song.requested_by}', value='', inline=False)
+            await self.channel.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title='No songs in queue to remove',
+                description= f'Add more songs to the queue with {self.prefix}p or {self.prefix}play',
+                color=discord.Color.blue()
+            )
+            await self.channel.send(embed=embed)
 
     async def shuffle_list(self, message):
         shuffle(self.songs)
@@ -322,6 +355,21 @@ class Voice():
 
             await self.display_queue(message.channel)
             return
+        
+        if(message.content.split(' ')[0] == self.prefix + "remove" or message.content.split(' ')[0] == self.prefix + "rm"):
+            if(len(message.content.split(' ')) <= 1):
+                embed = discord.Embed(
+                    title=':x: **You need to include the number of the song to remove**',
+                    description=f'USAGE:\n{self.prefix}remove 2\nor\n{self.prefix}rm 3',
+                    color=discord.Color.blue()
+                )
+                await message.channel.send(embed=embed)
+                await message.add_reaction('\u26D4')
+                return
+
+            song_number = ' '.join(message.content.split(' ')[1:])
+            await self.remove_song_from_queue(song_number=song_number, message = message)
+            return 
 
         if(message.content == self.prefix + "skip"):
             try:
